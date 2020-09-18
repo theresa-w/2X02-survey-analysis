@@ -1,0 +1,48 @@
+---
+title: "Student_Survey_Analysis"
+author: "Theresa Wang"
+date: "18/09/2020"
+output: 
+  html_document:
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction/Executive Summary
+
+- intro: how much data, response rate, examples of types of questions, restrict to the variable that you end up using
+
+1. Is this a random sample of DATA2002 students?
+2. What are the potential biases? Which variables are most likely to be subjected to this bias?
+3. Are there any questions that needed improvement to generate useful data?
+4. Does the number of COVID tests follow a Poisson distribution?
+5. Perform two other hypothesis tests. Give some rationale for why you selected these hypothesis tests and interpret the results. Be sure to mention any limitations in the data that may impact your findings.
+
+- assumptions
+ + expected frequencies >= 5
+ + observations are independent
+ 
+## Data Cleaning
+- shoe size cannot be cleaned
+- do not need to clean every variable
+- discuss what is done, what is cleaned and what can't be cleaned
+- lubridate::ymd_hms(), convert character into a date object
+
+## Hypothesis 1
+- null and alternative hypothesis
+- check >= 5, if not, reforrmulate the question to focus on the above rows and merge columns
+- two sample test
+  + when start off with independent measures from a largerr population
+  + likely still have independent observations when that larger population is stratified into subpopulations
+### Results
+
+## Hypothesis 2
+
+### Results
+
+## Conclusion
+- results and limitations of the work
+- highlight future research directions (what would you like to have done but weren't able to)
