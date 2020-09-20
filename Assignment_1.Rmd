@@ -11,27 +11,135 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Introduction/Executive Summary
 
-- intro: how much data, response rate, examples of types of questions, restrict to the variable that you end up using
+## Introduction
 
-1. Is this a random sample of DATA2002 students?
-2. What are the potential biases? Which variables are most likely to be subjected to this bias?
-3. Are there any questions that needed improvement to generate useful data?
-4. Does the number of COVID tests follow a Poisson distribution?
+A survey was conducted to collect the responses from students who are enrolled in DATA2X02. 
+
+Students enrolled in DATA2X02 in Semester 2 were surveyed through voluntary response sample method. The aim of this analysis is to determine the following three hypotheses based on the response gathered: 
+
+  * Does the number of COVID tests follow a Poisson distribution? 
+  * **hypothesis 2**
+  * **hypothesis 3**
+
+```{r import_data, message=FALSE}
+library(tidyverse)
+library(janitor)
+raw = readr::read_csv("survey.csv")
+
+data = raw %>% janitor::clean_names()
+
+num_row = nrow(data)
+```
+
+The survey conducted was a voluntary activity across the spam of four to five days. In summary, the population size is 572 students enrolled in DATA2X02 in semester 2, 2020. `r nrow(data)` students filled in the survey.
+
+## Data Cleaning
+The data cleaning process is to:
+
+  * Convert datatypes
+  * Have a cleaned and shortened name in the table for each of the questions in the survey
+  * Exclude any response with no user input but only the timestamp
+  
+
+### Cleaned column name
+A quick summary of the questions and the associated variable name is shown below:
+```{r data_clean}
+colnames(data)[1] = "Timestamp"
+colnames(data)[2] = "Num_test_COVID"
+colnames(data)[4] = "Postcode"
+colnames(data)[5] = "Last_visit_dentist"
+colnames(data)[6] = "Hour_on_uni"
+colnames(data)[7] = "Favourite_social_media"
+colnames(data)[8] = "Dog_or_cat"
+colnames(data)[9] = "Live_with_parents"
+colnames(data)[10] = "Hour_exercising"
+colnames(data)[11] = "Eye_colour"
+colnames(data)[12] = "Asthma"
+colnames(data)[13] = "Hour_paid_work"
+colnames(data)[14] = "Favourite_season"
+colnames(data)[15] = "Shoe_size"
+colnames(data)[16] = "Height"
+colnames(data)[17] = "Frequency_floss"
+colnames(data)[18] = "Glasses"
+colnames(data)[19] = "Dominant_hand"
+colnames(data)[20] = "Steak"
+colnames(data)[21] = "Stress_level"
+
+
+tibble(Questionn = 1:21, `Variable name` = colnames(data), `Associated Questions` = colnames(raw)) %>%
+  gt::gt() %>%
+  gt::tab_source_note("Table 1: Variable name and associated survey question")
+```
+### Convert data types
+The timestamps are converted from characters to data-time objects. The postcodes are converted from double class to characters as there is no qualitative characteristics (e.g. interval or ratio) to the postcode numbers. 
+```{r convert_types}
+data = data %>%
+    mutate(Postcode = as.character(Postcode),
+           Timestamp = lubridate::dmy_hms(Timestamp))
+```
+
+
+### Exclude survey response with no user input
+The graph shows the presence of the missing values in the survey and where they are located. It indicates that there are a few observations that have missing values in every single column. These observations are removed, and now the dataset has 172 rows.
+```{r drop_all_na}
+visdat::vis_miss(data)
+data_drop_na = data %>%
+    filter(!is.na(data[2:21]))
+```
+
+The summary of the data is shown below. As shown in the information, shoe size ranges from 5 to 265 and height ranges from 1.47 to 195. The wide range is due to inconsistent unit of measurement. These two categories cannot be cleaned as the unit for the data is unclear.
+
+**- do not need to clean every variable**
+**- discuss what is done, what is cleaned and what can't be cleaned **
+
+```{r data_overview}
+data_drop_na %>% skimr::skim()
+```
+
+### Is this a random sample of DATA2002 students?
+This is not a random sample of the population of DATA2X02 students, as it is a voluntary exercise. For random sampling, each sample have an equal probability of being chosen, and they do not have the choice of choosing to participate. However, this survey allows the population to choose whether they want to participate in the survey.
+
+
+
+### What are the potential biases? Which variables are most likely to be subjected to this bias?
+
+Due to the nature of voluntary response sample and the short period of time that the survey was conducted, the potential bias may be that students who check their university emails often and are interested in participating in the survey are more likely to fill out their response.
+
+The variables that are most subjected to this bias are:
+
+  * Hour_on_uni. Active on university email and wanting to participate in class activity may suggest the students are proactive in their academic studies, thus spend more hours on university work
+
+  * Glasses. These proactive students may need to engage with computer screen for a long time to complete their university tasks. This can impact their vision, and may influence their need for glasses or contacts.
+
+
+### Are there any questions that needed improvement to generate useful data?
+
+Many open questions that require students to type in a value can be improved by indicating what are the some acceptable values.
+
+Questions that ask for a numeric answer, such as height and shoe size, can be improved by specify a standard unit. For example, the height is in centimeters and the shoe size is UK shoe size measurement.
+
+Questions that ask for a text answer, such as the favourite social media platform, can benefit from indicating that it only looks for one social media platform in the response rather than multiple platforms. Also, it would be beneficial to provide some examples on how the names should be written in the response to standarise the format, such as captalisation and no abbreviation in the answer. This helps with data cleaning.
+
+
+
+## Hypothesis 1: 
+
+ 
+
+ 
+
+## Hypothesis 2:
+
 5. Perform two other hypothesis tests. Give some rationale for why you selected these hypothesis tests and interpret the results. Be sure to mention any limitations in the data that may impact your findings.
 
 - assumptions
  + expected frequencies >= 5
  + observations are independent
  
-## Data Cleaning
-- shoe size cannot be cleaned
-- do not need to clean every variable
-- discuss what is done, what is cleaned and what can't be cleaned
-- lubridate::ymd_hms(), convert character into a date object
-
-## Hypothesis 1
+ 
+ 
+ 
 - null and alternative hypothesis
 - check >= 5, if not, reforrmulate the question to focus on the above rows and merge columns
 - two sample test
@@ -39,7 +147,7 @@ knitr::opts_chunk$set(echo = TRUE)
   + likely still have independent observations when that larger population is stratified into subpopulations
 ### Results
 
-## Hypothesis 2
+## Hypothesis 3
 
 ### Results
 
