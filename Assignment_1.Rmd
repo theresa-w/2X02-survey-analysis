@@ -18,11 +18,11 @@ A survey was conducted to collect the responses from students who are enrolled i
 
 Students enrolled in DATA2X02 in Semester 2 were surveyed through voluntary response sample method. The aim of this analysis is to determine the following three hypotheses based on the response gathered: 
 
-  * Does the number of COVID tests follow a Poisson distribution? 
-  * **hypothesis 2**
+  * The number of COVID tests follow a Poisson distribution
+  * Sufficient exercise time increases the risk of having asthma
   * **hypothesis 3**
 
-```{r import_data, message=FALSE}
+```{r import_data, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(janitor)
 raw = readr::read_csv("survey.csv")
@@ -34,7 +34,7 @@ num_row = nrow(data)
 
 The survey conducted was a voluntary activity across the spam of four to five days. In summary, the population size is 572 students enrolled in DATA2X02 in semester 2, 2020. `r nrow(data)` students filled in the survey.
 
-## Data Cleaning
+## Initial Data Cleaning
 The data cleaning process is to:
 
   * Convert datatypes
@@ -71,6 +71,7 @@ tibble(Questionn = 1:21, `Variable name` = colnames(data), `Associated Questions
   gt::gt() %>%
   gt::tab_source_note("Table 1: Variable name and associated survey question")
 ```
+
 ### Convert data types
 The timestamps are converted from characters to data-time objects. The postcodes are converted from double class to characters as there is no qualitative characteristics (e.g. interval or ratio) to the postcode numbers. 
 ```{r convert_types}
@@ -123,14 +124,71 @@ Questions that ask for a text answer, such as the favourite social media platfor
 
 
 
-## Hypothesis 1: 
+## Hypothesis 1: Does the number of COVID tests follow a Poisson distibution?
+The number of COVID tests that the students have done til the closing date of the survey is shown in the bar graph below. Majority of the students have never done a COVID test, and the number of tests ranges from 0 to 10. This part of the analysis is to determine whether the number of COVID tests follow a Poisson distribution.
 
- 
+```{r covid_test_graph, warning=FALSE, message=FALSE}
+library(ggplot2)
 
- 
+num_covid = data_drop_na %>%
+  drop_na()
 
-## Hypothesis 2:
+ggplot(num_covid, aes(x = Num_test_COVID)) + 
+  geom_bar() +
+  labs(title = "Count vs Number of COVID tests", caption = "Graph 1: Distribution of the number of COVID tests", x = "Number of COVID tests", y = "Count")
 
+```
+
+$H_0$: The number of COVID tests follow a Poisson distribution.
+
+$H_1$: The number of COVID tests does not follow a Poisson distribution.
+
+The Poisson distribution assumes that the expected frequencies $e_i = np_i \geq 5$, and the observations are independent. In this survey, the responses are independent as the students filled the questionnaire individually.
+
+The NA values are dropped before testing the null hypothesis
+
+The parameter lambda is the average number of COVID-19 tests in a given interval (before the survey was closed). The calculated lambda is then used to compute the expected values for the dataset. As shown in Table 2, there are expected values that are smaller than 5. To make the assumption that all expected values are greater or equal to 5, row 3 to 8 are combined.
+
+```{r covid_test_poisson}
+
+num_covid_clean = data_drop_na %>%
+  select(Num_test_COVID) %>%
+  drop_na() %>%
+  group_by(Num_test_COVID) %>%
+  count()
+
+x = num_covid_clean$Num_test_COVID
+y = num_covid_clean$n
+n = sum(y)
+lam = sum(x*y)/n
+p = dpois(x, lambda = lam)
+
+p[8] = 1-sum(p[1:7])
+
+expected_value = n*p
+
+
+num_covid_clean$expected_values = expected_value
+num_covid_clean$expected_greater_5 = expected_value >= 5
+
+knitr::kable(num_covid_clean, caption = "Table 2: Poisson Distribution Calculation") 
+
+y_combined = c(y[1:2], sum(y[3:8]))
+
+expected_combined = c(expected_value[1:2], sum(expected_value[3:8]))
+  
+probability_combined = c(p[1:2], sum(p[3:8]))
+
+num_class = length(y_combined)
+
+test_stat = sum((y_combined - expected_combined)^2/(expected_combined))
+
+pval = 1-pchisq(test_stat, df = num_class-1-1)
+```
+### Result
+The p value is $9.336 * 10^{-6}$. It is smaller than the threshold of 0.05, thus there is insufficient evidence to show that this data follows a Poisson distribution.
+
+# Instruction
 5. Perform two other hypothesis tests. Give some rationale for why you selected these hypothesis tests and interpret the results. Be sure to mention any limitations in the data that may impact your findings.
 
 - assumptions
@@ -147,6 +205,97 @@ Questions that ask for a text answer, such as the favourite social media platfor
   + likely still have independent observations when that larger population is stratified into subpopulations
 ### Results
 
+## Hypothesis 2: Exercise increases the risk of getting asthma
+
+The data for whether the students have asthma and the number of hours on exercising are extracted from the survey responses. The data is firstly cleaned to remove any responses with missing values in these two questions.
+
+As shown in Graph 2, most of the students exercise between 0 to 20 hour a week, and there is one outlier who exercises for 70 hours a week. Among these responses, the students who have asthma mainly exercise for less than 10 hours. 
+
+
+```{r exercise_asthma_cleaning}
+exercise_asthma = data_drop_na %>%
+  select(Hour_exercising, Asthma) %>%
+  filter(!is.na(Hour_exercising) & !is.na(Asthma))
+
+ggplot(exercise_asthma, aes(x = Hour_exercising, fill = Asthma)) + 
+  geom_histogram(binwidth = 1) + 
+  labs(title = "Count vs Hours of exercising a week", caption = "Graph 2: Distribution of hours of exericising a week and asthma", x = "Hours of exericising a week", y = "Count")
+
+
+```
+
+This analysis is to examine the relationship between insufficient exercise and the risk of getting asthma. For the purpose of this analysis, insufficient exercise is defined as exercising for less than 30 minutes per day, thus less than `r 0.5*7` hours a week. Graph 3 categorises students into whether they have insufficient exercise per week and shows the distribution of whether they have asthma accordingly.
+
+The number of students who have asthma are similar in the two categories with the number for the sufficient exercise group is slightly higher, however, there are more students with sufficient exercise hours per week. The hypothesis to be tested is that sufficient exercise time increases the risk of having asthma. 
+
+```{r exercise_asthma_data}
+
+exercise_asthma$exercise_insufficient = exercise_asthma$Hour_exercising < 3.5
+
+ggplot(exercise_asthma, aes(x = exercise_insufficient, fill = Asthma)) + 
+  labs(x = "Insufficient exercise", y = "Count", title = "Count vs Insufficient exericise", caption = "Graph 3: Distribution of insufficient exercise") + 
+  geom_bar()
+
+```
+
+The analysis is a retrospective study where the number of people who have asthma is controlled, then examine the number of students on whether they have insufficient exercise.
+```{r hypothesis_2_analysis}
+asthma_insufficient = exercise_asthma %>%
+  filter(exercise_insufficient == TRUE & Asthma == "Yes") %>%
+  count()
+
+no_asthma_insufficient = exercise_asthma %>%
+  filter(exercise_insufficient == TRUE & Asthma == "No") %>%
+  count()
+
+asthma_sufficient = exercise_asthma %>%
+  filter(exercise_insufficient == FALSE & Asthma == "Yes") %>%
+  count()
+
+no_asthma_sufficient = exercise_asthma %>%
+  filter(exercise_insufficient == FALSE & Asthma == "No") %>%
+  count()
+
+c_table = matrix(c(asthma_insufficient$n, 
+                 asthma_sufficient$n, 
+                 no_asthma_insufficient$n, 
+                 no_asthma_sufficient$n), ncol=2)
+
+colnames(c_table) = c("Asthma: yes", "Asthma: no")
+rownames(c_table) = c("Insufficient exercise: yes", "Insufficient exercise: no")
+a = c_table[1, 1]
+b = c_table[1, 2]
+c = c_table[2, 1]
+d = c_table[2, 2]
+c_table = c_table %>%
+  cbind(Total = rowSums(c_table))
+c_table = c_table %>%
+  rbind(Total = colSums(c_table))
+
+knitr::kable(c_table, caption = "Table 3: Contingency table for asthma and insufficient exercise") 
+
+```
+### Result
+
+The odds ratio calculated is 1.05668, meaning the odds of a student developing asthma given insufficient exercise is 1.05668 times larger than a student developing asthma given sufficient exercise. 
+
+The log odds ratio is (-0.858, 0.9683), and the 95% odds confidence interval is (0.424, 2.6334). Since 0 lies inside the odds confidence interval and 1 lies inside the odds confidence interval, it is concluded that there is no relationship discovered and no evidennce to suggest that insufficient exericise is a risk factor for developing asthma.
+
+```{r hypothesis_2_calculation}
+odds_ratio = (a*d)/(b*c)
+
+se_log = sqrt(1/a + 1/b + 1/c + 1/d)
+
+log_confi_interval = c(log(odds_ratio)-qnorm(0.975)*se_log,
+                   log(odds_ratio) + qnorm(0.975) * se_log)
+
+
+confi_interval = exp(log_confi_interval)
+
+```
+
+
+
 ## Hypothesis 3
 
 ### Results
@@ -154,3 +303,5 @@ Questions that ask for a text answer, such as the favourite social media platfor
 ## Conclusion
 - results and limitations of the work
 - highlight future research directions (what would you like to have done but weren't able to)
+
+## References
