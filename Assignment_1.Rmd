@@ -20,7 +20,7 @@ Students enrolled in DATA2X02 in Semester 2 were surveyed through voluntary resp
 
   * The number of COVID tests follow a Poisson distribution
   * Sufficient exercise time increases the risk of having asthma
-  * **hypothesis 3**
+  * Flossing Frequency and last visit to a dentist are independent of each other
 
 ```{r import_data, message=FALSE, warning=FALSE}
 library(tidyverse)
@@ -135,7 +135,7 @@ num_covid = data_drop_na %>%
 
 ggplot(num_covid, aes(x = Num_test_COVID)) + 
   geom_bar() +
-  labs(title = "Count vs Number of COVID tests", caption = "Graph 1: Distribution of the number of COVID tests", x = "Number of COVID tests", y = "Count")
+  labs(caption = "Graph 1: Distribution of the number of COVID tests", x = "Number of COVID tests", y = "Count")
 
 ```
 
@@ -145,7 +145,7 @@ $H_1$: The number of COVID tests does not follow a Poisson distribution.
 
 The Poisson distribution assumes that the expected frequencies $e_i = np_i \geq 5$, and the observations are independent. In this survey, the responses are independent as the students filled the questionnaire individually.
 
-The NA values are dropped before testing the null hypothesis
+The NA values are dropped before testing the null hypothesis.
 
 The parameter lambda is the average number of COVID-19 tests in a given interval (before the survey was closed). The calculated lambda is then used to compute the expected values for the dataset. As shown in Table 2, there are expected values that are smaller than 5. To make the assumption that all expected values are greater or equal to 5, row 3 to 8 are combined.
 
@@ -188,22 +188,6 @@ pval = 1-pchisq(test_stat, df = num_class-1-1)
 ### Result
 The p value is $9.336 * 10^{-6}$. It is smaller than the threshold of 0.05, thus there is insufficient evidence to show that this data follows a Poisson distribution.
 
-# Instruction
-5. Perform two other hypothesis tests. Give some rationale for why you selected these hypothesis tests and interpret the results. Be sure to mention any limitations in the data that may impact your findings.
-
-- assumptions
- + expected frequencies >= 5
- + observations are independent
- 
- 
- 
- 
-- null and alternative hypothesis
-- check >= 5, if not, reforrmulate the question to focus on the above rows and merge columns
-- two sample test
-  + when start off with independent measures from a largerr population
-  + likely still have independent observations when that larger population is stratified into subpopulations
-### Results
 
 ## Hypothesis 2: Exercise increases the risk of getting asthma
 
@@ -219,7 +203,7 @@ exercise_asthma = data_drop_na %>%
 
 ggplot(exercise_asthma, aes(x = Hour_exercising, fill = Asthma)) + 
   geom_histogram(binwidth = 1) + 
-  labs(title = "Count vs Hours of exercising a week", caption = "Graph 2: Distribution of hours of exericising a week and asthma", x = "Hours of exericising a week", y = "Count")
+  labs(caption = "Graph 2: Distribution of hours of exericising a week and asthma", x = "Hours of exericising a week", y = "Count")
 
 
 ```
@@ -233,7 +217,7 @@ The number of students who have asthma are similar in the two categories with th
 exercise_asthma$exercise_insufficient = exercise_asthma$Hour_exercising < 3.5
 
 ggplot(exercise_asthma, aes(x = exercise_insufficient, fill = Asthma)) + 
-  labs(x = "Insufficient exercise", y = "Count", title = "Count vs Insufficient exericise", caption = "Graph 3: Distribution of insufficient exercise") + 
+  labs(x = "Insufficient exercise", y = "Count", caption = "Graph 3: Distribution of insufficient exercise") + 
   geom_bar()
 
 ```
@@ -279,7 +263,7 @@ knitr::kable(c_table, caption = "Table 3: Contingency table for asthma and insuf
 
 The odds ratio calculated is 1.05668, meaning the odds of a student developing asthma given insufficient exercise is 1.05668 times larger than a student developing asthma given sufficient exercise. 
 
-The log odds ratio is (-0.858, 0.9683), and the 95% odds confidence interval is (0.424, 2.6334). Since 0 lies inside the odds confidence interval and 1 lies inside the odds confidence interval, it is concluded that there is no relationship discovered and no evidennce to suggest that insufficient exericise is a risk factor for developing asthma.
+The log odds ratio is (-0.858, 0.9683), and the 95% odds confidence interval is (0.424, 2.6334). Since 0 lies inside the odds confidence interval and 1 lies inside the odds confidence interval, it is concluded that there is no relationship discovered and no evidennce to suggest that insufficient exercise is a risk factor for developing asthma.
 
 ```{r hypothesis_2_calculation}
 odds_ratio = (a*d)/(b*c)
@@ -296,12 +280,101 @@ confi_interval = exp(log_confi_interval)
 
 
 
-## Hypothesis 3
+## Hypothesis 3: Flossing Frequency and last visit to a dentist are independent of each other
+
+The data for the flossing frequency and last time visiting a dentist are extracted from the responses. Any response with missing value in either of these two questions are excluded from this analysis. Table 4 summarises all the valid responses.
+
+```{r}
+dentist_floss = data_drop_na %>%
+  select(Last_visit_dentist, Frequency_floss) %>%
+  filter(!is.na(Last_visit_dentist) & !is.na(Frequency_floss))
+
+floss_levels = c("Less than once a week", "Weekly", "Most days", "Every day")
+last_visit_levels = c("Less than 6 months", "Between 6 and 12 months", "Between 12 months and 2 years", "More than 2 years")
+
+dentist_floss = dentist_floss %>% 
+  mutate(
+    Last_visit_dentist = factor(Last_visit_dentist, levels = last_visit_levels), Frequency_floss = factor(Frequency_floss, levels = floss_levels)
+  )
+
+
+floss_dentist = table(dentist_floss$Last_visit_dentist, dentist_floss$Frequency_floss)
+
+colnames(floss_dentist) = c("Floss: Every Day", "Floss: Less than once a week", "Floss: Most Days", "Floss: Weekly")
+rownames(floss_dentist) = c("Last visit: Between 12 months and 2 years", "Last visit: 6 to 12 months", "Last visit: Less than 6 months", "Last visit: More than 2 years")
+ 
+
+rt = rowSums(floss_dentist)
+ct = colSums(floss_dentist)
+
+c_floss_dentist = floss_dentist %>%
+  cbind(Total = rowSums(floss_dentist))
+c_floss_dentist = c_floss_dentist %>%
+  rbind(Total = colSums(c_floss_dentist))
+
+knitr::kable(c_floss_dentist, caption = "Table 4: Last Dentist Visit vs Floss Frequency")
+```
+The data in Table 4 is represented in Graph 4. Visually, there is no strong evidence to suggest a relationship between the floss frequency and last visit to a dentist. This analysis examines the hypothesis of floss frequency and last visit to a dentist are independent of each other.
+
+```{r floss_visit_graph, fig.width=10}
+ggplot(dentist_floss, aes(x = Last_visit_dentist, fill = Frequency_floss)) + 
+  labs(x = "Last visit to the dentist", y = "Count", caption = "Graph 4: Distribution of last visit time to the dentist", fill = "Floss Frequency") +
+  geom_bar()
+```
+
+
 
 ### Results
+The assumption for independence test is that the expected value is equal or greater than 5. However, as shown in Table 5, not all the expected values are equal or greater than 5.
+```{r check_expected_value, warning=FALSE, message=FALSE}
+
+e_i_check = chisq.test(floss_dentist)$expected >= 5
+knitr::kable(e_i_check, caption = "Table 5: Expected value assumption check")
+```
+
+Thurs, Yates' Corrected chi-squared test is performed instead of a traditional chi-squared test. The calculated p-value is 0.4595. Monte-Carlo p-value is calculated from the distribution of simulated test statistic, which is represented in Graph 5. The value is 0.47135. As both of these values are larger than 0.05. It is concluded that at 5% significance level, last visit time to a dentist is independent of floss frequency.
+
+```{r calculation, message = FALSE, warning=FALSE}
+yates_corrected = chisq.test(floss_dentist, correct = TRUE)
+
+set.seed(20)
+B = 20000
+random_stats = numeric(length = B)
+
+rnd_table = r2dtable(B, r=rt, c=ct)
+for (i in 1:B) {
+  random_stats[i] = suppressWarnings(chisq.test(rnd_table[[i]])$statistic)
+}
+
+
+observed_stats = chisq.test(floss_dentist)$statistic
+
+hist(random_stats, breaks = 100, 
+     xlab = "Similated Test Statistic", 
+     main = "Distribution of Simulated Test Statistic")
+
+
+Monte_Carlo_var = mean(random_stats > observed_stats)
+```
 
 ## Conclusion
-- results and limitations of the work
-- highlight future research directions (what would you like to have done but weren't able to)
+
+Three conclusions are drawn from this analysis:
+  - The number of COVID tests done by students does not follow a Poisson distribution
+  - Insufficient exercise is not a risk factor for developing asthma
+  - Last visit time to a dentist is independent of floss frequency
+  
+Some of the limitations are:
+  - Not all student response have a valid answer to all questions
+  - In the independence test for the frequency of flossing and last visit to a dentist, the assumption for independence test does not hold. Therefore, the p-value calculated may be incorrect
+  
+Future research direction may be to explore relationship between numerical variables.
 
 ## References
+Beaudry J, Emily Kothe, Felix Singleton Thorn and Rhydwyn McGuire (2020). gendercodeR: Recodes Sex/Gender Descriptions Into A Standard Set. R package version 0.0.0.9000. https://github.com/ropenscilabs/gendercoder
+Firke S (2020). janitor: Simple Tools for Examining and Cleaning Dirty Data. R package version 2.0.1. https://CRAN.R-project.org/package=janitor
+Iannone R, Joe Cheng and Barret Schloerke (2020). gt: Easily Create Presentation-Ready Display Tables. R package version 0.2.2. https://CRAN.R-project.org/package=gt
+R Core Team (2020). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. https://www.R-project.org/.
+Tierney N (2017). “visdat: Visualising Whole Data Frames.” JOSS, 2(16), 355. doi: 10.21105/joss.00355
+Waring E, Michael Quinn, Amelia McNamara, Eduardo Arino de la Rubia, Hao Zhu and Shannon Ellis (2020). skimr: Compact and Flexible Summaries of Data. R package version 2.1.2. https://CRAN.R-project.org/package=skimr
+Wickham H et al., (2019). Welcome to the tidyverse. Journal of Open Source Software, 4(43), 1686, doi: 10.21105/joss.01686
