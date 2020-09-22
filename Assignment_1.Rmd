@@ -1,6 +1,5 @@
 ---
-title: "Student_Survey_Analysis"
-author: "Theresa Wang"
+title: "Student Survey Analysis"
 date: "18/09/2020"
 output: 
   html_document:
@@ -90,9 +89,6 @@ data_drop_na = data %>%
 ```
 
 The summary of the data is shown below. As shown in the information, shoe size ranges from 5 to 265 and height ranges from 1.47 to 195. The wide range is due to inconsistent unit of measurement. These two categories cannot be cleaned as the unit for the data is unclear.
-
-**- do not need to clean every variable**
-**- discuss what is done, what is cleaned and what can't be cleaned **
 
 ```{r data_overview}
 data_drop_na %>% skimr::skim()
@@ -360,21 +356,29 @@ Monte_Carlo_var = mean(random_stats > observed_stats)
 ## Conclusion
 
 Three conclusions are drawn from this analysis:
+
   - The number of COVID tests done by students does not follow a Poisson distribution
   - Insufficient exercise is not a risk factor for developing asthma
   - Last visit time to a dentist is independent of floss frequency
   
 Some of the limitations are:
+
   - Not all student response have a valid answer to all questions
   - In the independence test for the frequency of flossing and last visit to a dentist, the assumption for independence test does not hold. Therefore, the p-value calculated may be incorrect
   
 Future research direction may be to explore relationship between numerical variables.
 
 ## References
-Beaudry J, Emily Kothe, Felix Singleton Thorn and Rhydwyn McGuire (2020). gendercodeR: Recodes Sex/Gender Descriptions Into A Standard Set. R package version 0.0.0.9000. https://github.com/ropenscilabs/gendercoder
-Firke S (2020). janitor: Simple Tools for Examining and Cleaning Dirty Data. R package version 2.0.1. https://CRAN.R-project.org/package=janitor
-Iannone R, Joe Cheng and Barret Schloerke (2020). gt: Easily Create Presentation-Ready Display Tables. R package version 0.2.2. https://CRAN.R-project.org/package=gt
-R Core Team (2020). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. https://www.R-project.org/.
-Tierney N (2017). “visdat: Visualising Whole Data Frames.” JOSS, 2(16), 355. doi: 10.21105/joss.00355
-Waring E, Michael Quinn, Amelia McNamara, Eduardo Arino de la Rubia, Hao Zhu and Shannon Ellis (2020). skimr: Compact and Flexible Summaries of Data. R package version 2.1.2. https://CRAN.R-project.org/package=skimr
-Wickham H et al., (2019). Welcome to the tidyverse. Journal of Open Source Software, 4(43), 1686, doi: 10.21105/joss.01686
+
+- Firke S (2020). janitor: Simple Tools for Examining and Cleaning Dirty Data. R package version 2.0.1. https://CRAN.R-project.org/package=janitor
+- Iannone R, Joe Cheng and Barret Schloerke (2020). gt: Easily Create Presentation-Ready Display Tables. R package version 0.2.2. https://CRAN.R-project.org/package=gt
+- R Core Team (2020). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. https://www.R-project.org/
+- Kirill Müller and Hadley Wickham (2020). tibble: Simple Data Frames.
+R package version 3.0.3. https://CRAN.R-project.org/package=tibble
+- Tierney N (2017). “visdat: Visualising Whole Data Frames.” JOSS, 2(16), 355. doi: 10.21105/joss.00355
+- Waring E, Michael Quinn, Amelia McNamara, Eduardo Arino de la Rubia, Hao Zhu and Shannon Ellis (2020). skimr: Compact and Flexible Summaries of Data. R package version 2.1.2. https://CRAN.R-project.org/package=skimr
+- Wickham H et al., (2019). Welcome to the tidyverse. Journal of Open Source Software, 4(43), 1686, doi: 10.21105/joss.01686
+- H. Wickham. ggplot2: Elegant Graphics for Data Analysis.
+  Springer-Verlag New York, 2016
+- Yihui Xie (2015) Dynamic Documents with R and knitr. 2nd edition.
+  Chapman and Hall/CRC. ISBN 978-1498716963
